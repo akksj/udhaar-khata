@@ -19,17 +19,20 @@ export default function App() {
   const [customers, setCustomers] = useState([]);
   const [form, setForm] = useState({ email: "owner@khata.local", password: "Password123" });
   const [bill, setBill] = useState({ productId: "", qty: 1, customerId: "", paid: 0 });
+  const [payments, setPayments] = useState([]);
   const [error, setError] = useState("");
 
   async function load() {
-    const [d, p, c] = await Promise.all([
+    const [d, p, c, pay] = await Promise.all([
       api("/api/dashboard"),
       api("/api/products"),
-      api("/api/customers")
+      api("/api/customers"),
+      api("/api/payments")
     ]);
     setDash(d);
     setProducts(p);
     setCustomers(c);
+    setPayments(pay);
     if (p[0]) setBill((current) => ({ ...current, productId: current.productId || p[0]._id }));
   }
 
@@ -97,6 +100,13 @@ export default function App() {
         <input type="number" min="0" value={bill.paid} onChange={(e) => setBill({ ...bill, paid: e.target.value })} placeholder="Amount paid now" />
         <button type="submit">Save bill</button>
       </form>
+      <section className="card">
+        <h3>Recent collections</h3>
+        {payments.length === 0 && <p className="muted">No udhaar collected yet.</p>}
+        {payments.map((payment) => (
+          <p key={payment._id}>{payment.customer?.name || "Customer"} paid ₹{payment.amount} · {payment.method}</p>
+        ))}
+      </section>
       <section className="card">
         <h3>Low stock</h3>
         {(dash?.lowStock || []).map((item) => (
